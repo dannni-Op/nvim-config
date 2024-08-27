@@ -164,7 +164,7 @@ require("lazy").setup({
         },
         -- JavaScript
         tsserver = {
-          cmd = { 'typescript-language-server'},
+          cmd = { 'typescript-language-server', '--stdio'},
           filetypes = { 'javascript', 'typescript' },
           root_dir = function(fname)
             return vim.fn.getcwd()
