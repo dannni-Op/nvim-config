@@ -54,7 +54,7 @@ require("lazy").setup({
       'hrsh7th/cmp-buffer',
       'hrsh7th/cmp-path',
       'hrsh7th/nvim-cmp',
-      'hrsh7th/cmp-nvim-lsp', -- Add this line
+      'hrsh7th/cmp-nvim-lsp',
     },
     opts = function()
       local cmp = require('cmp')
@@ -78,8 +78,8 @@ require("lazy").setup({
           }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
         }),
         sources = cmp.config.sources({
-          { name = 'nvim_lsp' }, -- Add this line
           { name = 'path' },
+          { name = 'nvim_lsp' },
         }, {
             { name = 'buffer' },
           })
@@ -136,28 +136,63 @@ require("lazy").setup({
     end
   },
   {
-    "neovim/nvim-lspconfig",
-    config = function ()
-      local lspconfig = require('lspconfig')
-      -- lspconfig.lua_ls.setup({})
-
-      -- Enable LSP for various languages
-      local servers = {
-        "bashls",
-        "cssls",
-        "html",
-        "jsonls",
-        "pyright",
-        "rust_analyzer",
-        "tsserver",
-        "vimls",
-      }
-
-      for _, server in ipairs(servers) do
-        lspconfig[server].setup({
-          capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
-        })
-      end
+    'williamboman/mason.nvim',
+    config = function()
+      local mason = require('mason').setup()
     end
   },
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
+      local lspconfig = require('lspconfig')
+
+      -- LSP servers
+      local servers = {
+        -- PHP
+        intelephense = {
+          cmd = { 'intelephense', '--stdio' },
+          filetypes = { 'php' },
+          root_dir = function(fname)
+            return vim.fn.getcwd()
+          end,
+        },
+        pyright = {
+          filetypes = { 'python' },
+          root_dir = function(fname)
+            return vim.fn.getcwd()
+          end,
+        },
+        -- JavaScript
+        tsserver = {
+          cmd = { 'typescript-language-server'},
+          filetypes = { 'javascript', 'typescript' },
+          root_dir = function(fname)
+            return vim.fn.getcwd()
+          end,
+        },
+        -- Lua
+        lua_ls = {
+          filetypes = { 'lua' },
+          root_dir = function(fname)
+            return vim.fn.getcwd()
+          end,
+        },
+        -- Other language servers...
+      }
+
+      -- Setup LSP servers
+      for server, config in pairs(servers) do
+        lspconfig[server].setup(config)
+      end
+
+      -- LSP settings
+      vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
+        vim.lsp.diagnostic.on_publish_diagnostics,
+        {
+          -- Enable diagnostics for all buffers
+          enable = true,
+        }
+      )
+    end
+  }
 })
